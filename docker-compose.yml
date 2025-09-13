@@ -4,42 +4,83 @@ services:
   # PostgreSQL database for all data storage
   postgres:
     image: postgres:13
+    restart: always
     environment:
       POSTGRES_USER: dataeng
       POSTGRES_PASSWORD: dataeng
-      POSTGRES_DB: financial_data
+      POSTGRES_DB: airflow
+      POSTGRES_MULTIPLE_DATABASES: financial_data
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database/setup-multiple-dbs.sh:/docker-entrypoint-initdb.d/setup-multiple-dbs.sh
+      - ./database/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
 
   # Apache Airflow for batch orchestration
-  airflow-webserver:
+  airflow-init:
     image: apache/airflow:2.7.1
     depends_on:
       - postgres
     environment:
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://dataeng:dataeng@postgres/financial_data
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://dataeng:dataeng@postgres/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__WEBSERVER__SECRET_KEY: mysecretkey
+      _AIRFLOW_DB_UPGRADE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: airflow
+      _AIRFLOW_WWW_USER_PASSWORD: airflow
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+    command: version
+    entrypoint: >
+      /bin/bash -c "
+        sleep 10 &&
+        airflow db init &&
+        airflow users create -r Admin -u airflow -p airflow -e admin@example.com -f Admin -l User
+      "
+
+  airflow-webserver:
+    image: apache/airflow:2.7.1
+    restart: always
+    depends_on:
+      - postgres
+      - airflow-init
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://dataeng:dataeng@postgres/airflow
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__WEBSERVER__SECRET_KEY: mysecretkey
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
+      - ./data:/opt/airflow/data
     ports:
       - "8080:8080"
     command: webserver
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
 
   airflow-scheduler:
     image: apache/airflow:2.7.1
+    restart: always
     depends_on:
       - postgres
+      - airflow-init
     environment:
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://dataeng:dataeng@postgres/financial_data
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://dataeng:dataeng@postgres/airflow
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
+      - ./data:/opt/airflow/data
     command: scheduler
 
   # Zookeeper for Kafka
@@ -68,6 +109,7 @@ services:
     build:
       context: ./streaming
       dockerfile: Dockerfile
+    restart: on-failure
     depends_on:
       - kafka
       - postgres

@@ -1,0 +1,5 @@
+# Required packages for the stream processor
+kafka-python==2.0.2
+psycopg2-binary==2.9.5
+pandas==1.5.3
+numpy==1.24.2
