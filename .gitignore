@@ -1,0 +1,25 @@
+# Jupyter notebook file
+data_pipeline_tutorial.ipynb
+
+# Troubleshooting documentation
+troubleshooting.md
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter checkpoint files
+.ipynb_checkpoints
+
+# Log files
+*.log
+
+# Environment directories
+venv/
+env/
+.env
+
+# IDE specific files
+.idea/
+.vscode/
