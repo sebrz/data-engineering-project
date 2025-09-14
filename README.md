@@ -1,90 +1,37 @@
-# Financial Data Pipeline
+# Pipeline de Datos Financieros
 
-A complete data engineering pipeline for financial data, featuring batch processing with Apache Airflow, real-time streaming with Kafka, and centralized storage in PostgreSQL—all orchestrated with Docker Compose.
+Un pipeline completo de ingeniería de datos para datos financieros, que realiza procesamiento de datos tipo batch utilizando Apache Airflow, stream de datos real-time con Kafka, y almacenamiento centralizado en una base de datos PostgreSQL, cada servicio inicializado con Docker Compose.
 
-## Project Overview
+## Overview
 
-This project demonstrates a complete data engineering pipeline that processes both batch and streaming financial data:
+El proyecto demuestra un pipeline de ingeniería de datos que procesa datos tanto tipo batch como streaming, relacionados con el sector financiero:
 
-- **Batch Processing**: Historical stock prices and company fundamentals using Airflow DAGs
-- **Streaming Processing**: Real-time stock ticks and trading orders using Kafka
-- **Storage**: PostgreSQL database for both batch and streaming data
-- **Infrastructure**: Docker Compose for easy deployment and management
+- **Procesamiento Tipo Batch**: Historial de precio de un stock y fundamentos de la compañía correspondiente, procesados utilizando DAGs de Airflow
+- **Procesamiento Tipo Streaming**: Cambios de precio en tiempo real, y ordenes de compra/venta utilizando Kafka
+- **Almacenamiento**: Base de datos PostgreSQL para ambos tipos de datos
+- **Infraestructura**: Docker Compose para la orquestación y manejo fáciles de los servicios.
 
 ## Architecture
 
 ![Architecture Diagram](architecture.png)
 
-## Components
+## Componentes
 
-- **PostgreSQL**: Central database for all data storage
-- **Apache Airflow**: Orchestrates batch processing workflows
-- **Apache Kafka**: Handles real-time data streams
-- **Python**: Used for data processing and transformation
+- **PostgreSQL**: DB central para almacenar todos los datos
+- **Apache Airflow**: Orquestación de workflows para datos tipo batch
+- **Apache Kafka**: Se encarga del streaming de los datos en tiempo real
+- **Python**: Se utiliza para transformaciones y procesamiento de datos
 
-## Data Sources
+## Fuentes de Datos
 
-- **Batch Sources**:
-  - Historical stock price data (CSV)
-  - Company fundamentals & analyst ratings (CSV)
+- **Batch**:
+  - Historia de precio de los stocks (CSV)
+  - Fundamentos de la compañía y apreciaciones de analistas (CSV)
   
-- **Streaming Sources**:
-  - Real-time stock price ticks
-  - Trading orders/signals
-
-## Getting Started
-
-### Prerequisites
-
-- Docker and Docker Compose
-- Git
-
-### Setup Instructions
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/financial-data-pipeline.git
-cd financial-data-pipeline
-```
-
-2. Start the services:
-```bash
-docker-compose up -d
-```
-
-3. Generate sample data:
-```bash
-docker-compose exec airflow-webserver python /opt/airflow/dags/generate_sample_data.py
-```
-
-4. Access the Airflow UI:
-   - Open http://localhost:8080 in your browser
-   - Default credentials: airflow/airflow
-
-## Project Structure
-
-```
-.
-├── dags/                    # Airflow DAGs
-│   └── historical_stock_processing.py
-├── streaming/              # Streaming components
-│   ├── consumer.py
-│   ├── producer.py
-│   ├── Dockerfile
-│   └── requirements.txt
-├── database/               # Database initialization
-│   └── init.sql
-├── docker-compose.yml      # Docker compose configuration
-├── data_generator.py       # Sample data generator
-└── README.md               # Project documentation
-```
+- **Streaming**:
+  - Cambios de precio en tiempo real
+  - Órdenes de compra/venta
 
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Yahoo Finance API for the inspiration for the data structure
-- Apache Airflow documentation
-- Confluent Kafka documentation
